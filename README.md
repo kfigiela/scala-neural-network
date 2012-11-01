@@ -14,8 +14,7 @@ Requirements:
 
 How to run:
     
-    sbt run                                       # to see list of examples and interactively choose one
-    sbt "run-main nnetworks.examples.And"         # to run specific example with training data
-    sbt "run-main nnetworks.examples.And 1 1"     # to run specific example with certain inputs
+    sbt "run path/to/config.scala"         # run for training data
+    sbt "run path/to/config.scala 0.1 0.2" # specify inputs
     
 

@@ -1,4 +1,5 @@
-libraryDependencies += "org.scalatest" %% "scalatest" % "1.8" % "test"
+resolvers += "Twitter Repo" at "http://maven.twttr.com"
 
-libraryDependencies += "junit" % "junit" % "4.10" % "test"
+libraryDependencies += "com.twitter"   % "util-core"   % "5.3.13"
 
+libraryDependencies += "com.twitter"   % "util-eval"   % "5.3.13"
