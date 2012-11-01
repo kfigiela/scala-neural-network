@@ -26,7 +26,7 @@ object Xor extends XorNetwork {
 }
 
 object XorRandom extends XorNetwork {
-  override val network = Network(
+  val network = Network(
     Layer(sigmoid, List(
       math.random :: math.random:: math.random :: Nil,
       math.random :: math.random:: math.random :: Nil
