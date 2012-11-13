@@ -10,12 +10,6 @@ new NetworkConfig {
   )
 
   network = Network(
-    Layer(sigmoid, List(
-      math.random :: math.random:: math.random :: Nil,
-      math.random :: math.random:: math.random :: Nil
-    )),
-    Layer(sigmoid, List(
-      math.random :: math.random:: math.random :: Nil
-    ))
+    RLayers(2, (sigmoid _, 2, -10.0, -1.0) :: (sigmoid _, 2, -10.0, -1.0) :: Nil): _*
   )
 }

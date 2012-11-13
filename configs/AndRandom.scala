@@ -3,15 +3,13 @@ import nnetworks.ActivationFunctions._
 
 new NetworkConfig {
   training = List(
-    (Math :: 0. :: Nil, 0. :: Nil),
-    (Math :: 1. :: Nil, 0. :: Nil),
-    (Math :: 0. :: Nil, 0. :: Nil),
-    (Math :: 1. :: Nil, 1. :: Nil)
+    (0. :: 0. :: Nil, 0. :: Nil),
+    (0. :: 1. :: Nil, 0. :: Nil),
+    (1. :: 0. :: Nil, 0. :: Nil),
+    (1. :: 1. :: Nil, 1. :: Nil)
   )
   
   network = Network(
-    Layer(sigmoid, List(
-      math.random :: math.random :: math.random :: Nil
-    ))
+    RLayers(2, (sigmoid _, 2, -10.0, -1.0) :: Nil): _*
   )
 }
