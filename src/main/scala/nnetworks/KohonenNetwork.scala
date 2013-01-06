@@ -1,46 +1,97 @@
 package nnetworks
 
+import math.abs, math.sqrt
 
-case class KohonenNetwork(val weights: List[List[Double]], val conscience: List[Double]) extends AbstractNetwork {
-  def calculateOutputs(inputs: List[Double]) = {
-    val normalizationFactor = Helpers.normalizationFactor(inputs)
-    val normalizedInputs = inputs.map( x => (x/normalizationFactor)*2.0-1.0)
-    weights.map( neuron => (normalizedInputs, neuron).zipped.map(_*_).reduce(_+_) ).map ( x => (x / normalizationFactor)*2.0 - 1.0 )
+case class KohonenLayer (n: List[List[Double]]) extends Layer (ActivationFunctions.id, n) {
+  def this(inputs : Int, outputs : Int) = this( (for {i <- 0 to outputs-1} yield Array.fill(inputs)(0.0).toList).toList )
+
+  var learn_rate : Double = 0.03
+  var conscience : Double = 1.0
+  var neigh_shape : Int = 1
+  var neigh_dist : Int= 0
+  var winning_count = Array.fill(neurons.length)(0)
+
+  def psp(weights: List[Double], inputs: List[Double]) = {
+    (for {(x, y) <- weights zip inputs} yield (x - y)*(x - y)).sum
   }
 
-  def closest(inputs:List[Double], beta: Double):Int = {
-    (weights.map(neuron => (neuron, inputs).zipped.map((x,y) => (math.abs(x-y))).sum).zipWithIndex, conscience).zipped.filter((w, c) => c > beta)._1.min._2
+  def output_distances(inputs: List[Double]) = {
+    (for (weights <- neurons) yield {
+      if (weights.length != inputs.length)
+        throw new Exception("weights and inputs not of equal length...")
+      psp(weights, inputs)}).toList
   }
 
-  def apply(inputs: List[Double]): List[Double] = List(closest(inputs, 0.0))
+  def mark_winner(outputs : List[Double]) = {
+    val min = outputs.min
+    val result = Array.fill(outputs.length) (0.0)
+    result(outputs.indexOf(min)) = 1.0
+    result.toList
+  }
 
-  def size = weights.length
+  override def apply(inputs: List[Double]) = {
+    mark_winner(output_distances(inputs))
+  }
+
+  def learn(trainingSet : List[List[Double]]) : List[List[Double]] = {
+    for {trainingExample <- trainingSet} yield {
+      val result = adjusted_distance(trainingExample)
+      val winner = result.indexOf(1.0)
+      val neurons_to_teach = get_neighbourhood(winner)
+      teach(neurons_to_teach, trainingExample)
+    }
+    neurons
+  }
+
+  def adjusted_distance(inputs: List[Double]) : List[Double] = {
+    val len = neurons.length
+    val result = mark_winner( (for {(output, winFreq) <- (output_distances(inputs) zip winning_count)} yield output + conscience*(winFreq/len - 1)).toList )
+    winning_count(result.indexOf(1.0)) += 1
+    result
+  }
+
+  def get_neighbourhood(i : Int) : List[(Int, Int)] = {
+    val min = (x : Int, y : Int) => if (x<y) x else y
+    val max = (x : Int, y : Int) => if (x>y) x else y
+
+    neigh_shape match {
+      case 1 =>
+        val row_size = neurons.length
+        (for { x <- -neigh_dist to neigh_dist
+               if ( x+i>= 0 && x+i< row_size ) }
+        yield (abs(x-i), x+i) ).toList
+
+      case 2 =>
+        val row_size = sqrt(neurons.length) toInt
+        val row = i / row_size
+        val col = i % row_size
+
+        (for { rowz <- -neigh_dist to neigh_dist; colz <- -neigh_dist to neigh_dist
+               if (rowz >= 0 && rowz < row_size && colz >= 0 && colz < row_size && abs(rowz) + abs(colz) < neigh_dist)}
+        yield (abs(rowz) + abs(colz), rowz*row_size + colz)).toList
+
+    }
+  }
+
+
+  def teach(neuronsA : List[(Int, Int)], input : List[Double]) {
+    for {(dist, neuron) <- neuronsA} yield
+      neurons = neurons.updated(neuron, (for {(weight, inp) <- (neurons(neuron) zip input)} yield weight + (learn_rate/(dist+1)) * (inp - weight)).toList)
+  }
+
 }
 
 object KohonenTraining {
-  def distance(a: List[Double], b: List[Double]):Double = math.sqrt((a,b).zipped.map((a,b) => math.pow(a-b, 2)).sum)
-  def gaussian(weights: List[Double], winner: List[Double], gamma: Double) =
-  //    if (weights == winner) 1.0 else 0.0
-    math.exp(-distance(weights, winner)/gamma)
-  def saturate(x: Double) = if (x > 1.0) 1.0 else if (x < 0.0) 0.0 else x
-
-  def apply(network: KohonenNetwork, data: List[(List[Double], List[Double])], epochs:Int, alfa: Double, gamma: Double, beta: Double) = {
-    (0 to epochs).foldLeft(network)( (network, _) =>
-      data.foldLeft(network)((network, item:(List[Double],List[Double])) => item match {
-        case (vector, _) => {
-          val result = network.closest(vector, beta)
-          val winnerWeights = network.weights(result)
-          val newWeights = network.weights.map( (neuron) =>
-            (neuron, vector).zipped.map(
-              (x, y) => x + gaussian(neuron, winnerWeights, gamma)*alfa*(y-x)
-            ).toList
-          )
-          val newConscience = network.conscience.zipWithIndex.map( (x) => saturate(if(x._2 != result) x._1 + 1.0/network.size else x._1 - beta))
-          println(newWeights)
-          KohonenNetwork(newWeights, newConscience)
-        }
-      }
-      )
-    )
+  /** epochs, LEARN_RATE, CONSCIENCE, NEIGHBOURHOOD_SHAPE, DIST */
+  def apply(layer: KohonenLayer, inputs : List[List[Double]], parameters : List[(Int,Double,Double,Int,Int)]) = {
+    for { (epochs, learn_rate, conscience, shape, neigh) <- parameters } yield {
+      layer.learn_rate = learn_rate
+      layer.conscience = conscience
+      layer.neigh_dist = neigh
+      layer.neigh_shape = shape
+      (0 until epochs).foreach((_) -> layer.learn(inputs))
+    }
+    layer
   }
+
 }
