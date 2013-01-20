@@ -15,15 +15,12 @@ abstract class Teacher(val learnRate: Double) {
 
 class DeltaRuleTeacher(val learnRatey: Double) extends Teacher(learnRatey) {
   override def teach(layer: Layer, examples: List[(List[Double], List[Double])]) = {
-    //iterate over training examples
     for {(input, targetOutput) <- examples} yield {
       val layerOutput = layer.apply(input)
       assert(layerOutput.length == targetOutput.length && targetOutput.length == layer.neurons.length)
-      //crate new weights for every neuron
       val newLayer = for {(targetValue, layerValue, neuronWeights) <- (targetOutput, layerOutput, layer.neurons).zipped.toList} yield {
         val weightedSum = psp(neuronWeights, input)
         val derivative = numericDerivative(layer.activation, weightedSum)
-        //create weights for single neuron
         val newWeights = for {(inputValue, weight) <- input zip neuronWeights} yield {
           val delta = learnRate * (targetValue - layerValue) * derivative * inputValue
           weight + delta

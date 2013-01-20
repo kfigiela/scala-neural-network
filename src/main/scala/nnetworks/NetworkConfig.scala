@@ -12,7 +12,7 @@ trait NetworkConfig extends Config[Base]{
   def RLayers(inputs: Int, layers: List[((Double) => Double, Int, Double, Double)]):List[Layer] =
     layers.foldLeft((List[Layer](), inputs))((acc, layer) => acc match {
       case (current_layers, current_inputs) => layer match {
-        case (activation, count, a, b) => (new Layer(activation, ((1 to count).map((_) => (0 to inputs).map((_) => random(a, b)).toList )).toList) :: current_layers , count)
+        case (activation, count, a, b) => (new Layer(activation, activation, ((1 to count).map((_) => (0 to inputs).map((_) => random(a, b)).toList )).toList) :: current_layers , count)
       }
     })._1.reverse
 
