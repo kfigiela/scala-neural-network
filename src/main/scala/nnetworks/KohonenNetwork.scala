@@ -2,7 +2,7 @@ package nnetworks
 
 import math.abs, math.sqrt
 
-case class KohonenLayer (n: List[List[Double]]) extends Layer (ActivationFunctions.id, n) {
+case class KohonenLayer (n: List[List[Double]]) extends Layer (ActivationFunctions.id, ActivationFunctions.idD, n) {
   def this(inputs : Int, outputs : Int) = this( (for {i <- 0 to outputs-1} yield Array.fill(inputs)(0.0).toList).toList )
 
   var learn_rate : Double = 0.03
