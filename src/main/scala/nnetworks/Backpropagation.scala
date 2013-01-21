@@ -10,7 +10,7 @@ object Backpropagation {
             val output = network(input)
 
             error += scala.math.sqrt((output, expectedOutput).zipped.map( -_+_ ).map( (a) => a*a ).reduce(_+_))/expectedOutput.length
-            println(output)
+//            println(output)
 
 
             network.layers.last.delta = (output, expectedOutput).zipped.map( -_+_ ).toList
@@ -33,7 +33,7 @@ object Backpropagation {
 //            println(network.layers)
 //            println(network.layers.map(_.delta))
         }})
-        println(error/learningSet.length)
+//        println(error/learningSet.length)
       })
 
     }
@@ -42,16 +42,26 @@ object Backpropagation {
 object BPMain {
   def main(args: Array[String]) {
     val trainingSet = List(List(0., 0.), List(0., 1.), List(1., 0.), List(1., 1.))
-    val teacherSet = List(List(0.), List(1.), List(1.), List(0.))
+    val teacherSet = List(List(0.), List(1.), List(1.), List(1.))
 
     val layer = new Layer(ActivationFunctions.sigmoid, ActivationFunctions.sigmoidD, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), true)
     val layer2 = new Layer(ActivationFunctions.sigmoid, ActivationFunctions.sigmoidD, List(0.2 :: 0.4 :: 0.6 :: Nil), true)
     val net = new Network(layer, layer2)
 
     println(net.layers)
+       println(net(List(0., 0.)))
+	println(net(List(1., 0.)))
+	println(net(List(0., 1.)))
+	println(net(List(1., 1.)))
+
 
     Backpropagation.train(net, true, (trainingSet, teacherSet).zipped.toList, 0.2, 0.6)
 
     println(net.layers)
-  }
+       println(net(List(0., 0.)))
+	println(net(List(1., 0.)))
+	println(net(List(0., 1.)))
+	println(net(List(1., 1.)))
+
+}
 }
