@@ -44,7 +44,7 @@ object BPMain {
     val trainingSet = List(List(0., 0.), List(0., 1.), List(1., 0.), List(1., 1.))
     val teacherSet = List(List(0.), List(1.), List(1.), List(0.))
 
-    val layer = new Layer(ActivationFunctions.sigmoidD, ActivationFunctions.sigmoidD, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), true)
+    val layer = new Layer(ActivationFunctions.sigmoid, ActivationFunctions.sigmoidD, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), true)
     val layer2 = new Layer(ActivationFunctions.sigmoid, ActivationFunctions.sigmoidD, List(0.2 :: 0.4 :: 0.6 :: Nil), true)
     val net = new Network(layer, layer2)
 
