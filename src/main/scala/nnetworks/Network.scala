@@ -9,9 +9,12 @@ object Helpers {
 }
 
 case class Layer(val activation: (Double) => Double, val activationD: (Double) => Double, var neurons: List[List[Double]], val bias:Boolean = true) {
+
   var cinput:List[Double] = List()
   var ainput:List[Double] = List()
-  var delta:List[Double] = List()
+  var delta :List[Double] = List()
+  var update:List[Double] = List()
+
   def apply(input: List[Double]): List[Double] = {
 
     if (bias) {
