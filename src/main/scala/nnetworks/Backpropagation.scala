@@ -49,19 +49,14 @@ object BPMain {
     val net = new Network(layer, layer2)
 
     println(net.layers)
-       println(net(List(0., 0.)))
-	println(net(List(1., 0.)))
-	println(net(List(0., 1.)))
-	println(net(List(1., 1.)))
+
+    (trainingSet,teacherSet).zipped.foreach((i,o) => println("%s = %s should be %s ".format(i,net(i),o)))
 
 
     Backpropagation.train(net, true, (trainingSet, teacherSet).zipped.toList, 0.2, 0.6)
 
     println(net.layers)
-       println(net(List(0., 0.)))
-	println(net(List(1., 0.)))
-	println(net(List(0., 1.)))
-	println(net(List(1., 1.)))
+    (trainingSet,teacherSet).zipped.foreach((i,o) => println("%s = %s should be %s ".format(i,net(i),o)))
 
 }
 }
