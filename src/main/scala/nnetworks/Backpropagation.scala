@@ -1,11 +1,11 @@
 package nnetworks
 
 object Backpropagation {
-    def train(network: Network, bias:Boolean, learningSet: List[(List[Double], List[Double])], alpha: Double, momentum: Double):Double = {
-      var gerror = 1.0;
+    def train(network: Network, bias:Boolean, learningSet: List[(List[Double], List[Double])], alpha: Double, momentum: Double, maxSteps: Integer = 10000, maxError: Double = 0.05):Double = {
+      var totalError = 1.0;
       var step = 0;
       val offset = if (bias) 1 else 0
-      while(gerror > 0.05 && step < 100000) {
+      while(totalError > maxError && step < maxSteps) {
         step += 1
         var error = 0.0;
         learningSet.foreach((item) => item match {
@@ -26,26 +26,19 @@ object Backpropagation {
             })
 
             network.layers.foreach((l) => {
-//              println(l.neurons.length)
-//              println(l.delta.length)
-//              println(l.cinput.length)
-              l.neurons = (l.neurons, l.delta, l.cinput).zipped.map((neuron, d, cinput) => {
-//                println(neuron.length - l.ainput.length)
-                (neuron, l.ainput).zipped.map((weight, input) => weight + alpha * d * l.activationD(cinput) * input).toList
+              l.update = (l.update, l.delta, l.calculatedInput).zipped.map((neuron, d, cinput) => {
+                (neuron, l.previousInput).zipped.map((weight, input) => momentum*weight + alpha * d * l.activationD(cinput) * input).toList
               }).toList
-//              println(l.ainput)
-//              println(l.neurons)
-//              println("--------")
+              l.neurons = (l.neurons, l.update).zipped.map((neuron, update) => {
+                (neuron, update).zipped.map((weight, update) => weight + update).toList
+              }).toList
             })
-
-//            println(network.layers)
-//            println(network.layers.map(_.delta))
         }})
-        gerror = error/learningSet.length
+        totalError = error/learningSet.length
       }
       println(step)
-      println(gerror)
-      gerror
+      println(totalError)
+      totalError
     }
 }
 
@@ -91,11 +84,11 @@ object BPMain {
 
     val layer = new Layer(ActivationFunctions.sigmoid, ActivationFunctions.sigmoidD,
       List(
-        math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: Nil,
-        math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: Nil,
-        math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: Nil
+        math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: Nil,
+        math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: Nil,
+        math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: math.random :: Nil
       )
-      ,false)
+      ,true)
     val net = new Network(layer)
 
     println(net.layers)
@@ -103,7 +96,7 @@ object BPMain {
     training.foreach((i) => println("%s = %s should be %s ".format(i._1,net(i._1),i._2)))
 
 
-    Backpropagation.train(net, false, training.toList, 0.2, 0.6)
+    Backpropagation.train(net, true, training.toList, 0.2, 0.6)
 
     println(net.layers)
     training.foreach((i) => println("%s = %s should be %s ".format(i._1,net(i._1),i._2)))
@@ -148,7 +141,7 @@ object BPMain {
 
 //    println(net.layers)
 
-    Backpropagation.train(net, true, (trainingSet, teacherSet).zipped.toList, 0.6, 0)
+    Backpropagation.train(net, true, (trainingSet, teacherSet).zipped.toList, 0.9, 0.6)
 
 //    println(net.layers)
 //    (trainingSet,teacherSet).zipped.foreach((i,o) => println("%s = %s should be %s ".format(i,net(i),o)))
@@ -158,24 +151,24 @@ object BPMain {
   def main(args: Array[String]) {
 //    or
 
-    ikonki
+//    ikonki
 //
-    xor(0.2, 0.0, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), List(0.2 :: 0.4 :: 0.6 :: Nil))
-    xor(0.2, 0.0, List(0.9 :: 0.5 :: 0.8 :: Nil, 0.5 :: 0.2 :: 0.9 :: Nil), List(0.4 :: 0.2 :: 0.7 :: Nil))
-    xor(0.2, 0.0, List(0.0 :: -0.5 :: -0.8 :: Nil, -0.5 :: 0.2 :: -0.9 :: Nil), List(0.4 :: -0.2 :: 0.7 :: Nil))
+    xor(0.2, 0.2, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), List(0.2 :: 0.4 :: 0.6 :: Nil))
+    xor(0.2, 0.2, List(0.9 :: 0.5 :: 0.8 :: Nil, 0.5 :: 0.2 :: 0.9 :: Nil), List(0.4 :: 0.2 :: 0.7 :: Nil))
+    xor(0.2, 0.2, List(0.0 :: -0.5 :: -0.8 :: Nil, -0.5 :: 0.2 :: -0.9 :: Nil), List(0.4 :: -0.2 :: 0.7 :: Nil))
 
-    xor(0.3, 0.0, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), List(0.2 :: 0.4 :: 0.6 :: Nil))
-    xor(0.3, 0.0, List(0.9 :: 0.5 :: 0.8 :: Nil, 0.5 :: 0.2 :: 0.9 :: Nil), List(0.4 :: 0.2 :: 0.7 :: Nil))
-    xor(0.3, 0.0, List(0.0 :: -0.5 :: -0.8 :: Nil, -0.5 :: 0.2 :: -0.9 :: Nil), List(0.4 :: -0.2 :: 0.7 :: Nil))
+    xor(0.3, 0.4, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), List(0.2 :: 0.4 :: 0.6 :: Nil))
+    xor(0.3, 0.4, List(0.9 :: 0.5 :: 0.8 :: Nil, 0.5 :: 0.2 :: 0.9 :: Nil), List(0.4 :: 0.2 :: 0.7 :: Nil))
+    xor(0.3, 0.4, List(0.0 :: -0.5 :: -0.8 :: Nil, -0.5 :: 0.2 :: -0.9 :: Nil), List(0.4 :: -0.2 :: 0.7 :: Nil))
 
-    xor(0.6, 0.0, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), List(0.2 :: 0.4 :: 0.6 :: Nil))
-    xor(0.6, 0.0, List(0.9 :: 0.5 :: 0.8 :: Nil, 0.5 :: 0.2 :: 0.9 :: Nil), List(0.4 :: 0.2 :: 0.7 :: Nil))
-    xor(0.6, 0.0, List(0.0 :: -0.5 :: -0.8 :: Nil, -0.5 :: 0.2 :: -0.9 :: Nil), List(0.4 :: -0.2 :: 0.7 :: Nil))
+    xor(0.6, 0.5, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), List(0.2 :: 0.4 :: 0.6 :: Nil))
+    xor(0.6, 0.5, List(0.9 :: 0.5 :: 0.8 :: Nil, 0.5 :: 0.2 :: 0.9 :: Nil), List(0.4 :: 0.2 :: 0.7 :: Nil))
+    xor(0.6, 0.5, List(0.0 :: -0.5 :: -0.8 :: Nil, -0.5 :: 0.2 :: -0.9 :: Nil), List(0.4 :: -0.2 :: 0.7 :: Nil))
 
-    xor(0.8, 0.0, List(0.9 :: 0.5 :: 0.8 :: Nil, 0.5 :: 0.2 :: 0.9 :: Nil), List(0.4 :: 0.2 :: 0.7 :: Nil))
-    xor(0.8, 0.0, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), List(0.2 :: 0.4 :: 0.6 :: Nil))
-    xor(0.8, 0.0, List(0.0 :: -0.5 :: -0.8 :: Nil, -0.5 :: 0.2 :: -0.9 :: Nil), List(0.4 :: -0.2 :: 0.7 :: Nil))
+    xor(0.8, 0.6, List(0.9 :: 0.5 :: 0.8 :: Nil, 0.5 :: 0.2 :: 0.9 :: Nil), List(0.4 :: 0.2 :: 0.7 :: Nil))
+    xor(0.8, 0.6, List(0.1 :: 0.2 :: 0.3 :: Nil, 0.5 :: 0.6 :: 0.7 :: Nil), List(0.2 :: 0.4 :: 0.6 :: Nil))
+    xor(0.8, 0.6, List(0.0 :: -0.5 :: -0.8 :: Nil, -0.5 :: 0.2 :: -0.9 :: Nil), List(0.4 :: -0.2 :: 0.7 :: Nil))
 
-    trixor
+//    trixor
   }
 }

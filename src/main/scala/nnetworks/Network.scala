@@ -10,20 +10,20 @@ object Helpers {
 
 case class Layer(val activation: (Double) => Double, val activationD: (Double) => Double, var neurons: List[List[Double]], val bias:Boolean = true) {
 
-  var cinput:List[Double] = List()
-  var ainput:List[Double] = List()
+  var calculatedInput:List[Double] = List()
+  var previousInput:List[Double] = List()
   var delta :List[Double] = List()
-  var update:List[Double] = List()
+  var update:List[List[Double]] = neurons.map(_.map((x) => 0.0)).toList
 
   def apply(input: List[Double]): List[Double] = {
 
     if (bias) {
-      ainput = 1.0 :: input
-      cinput = neurons map ((neuron) => ((1.0 :: input), neuron).zipped.map(_*_).sum)
+      previousInput = 1.0 :: input
+      calculatedInput = neurons map ((neuron) => ((1.0 :: input), neuron).zipped.map(_*_).sum)
       neurons map ((neuron) => activation(((1.0 :: input), neuron).zipped.map(_*_).sum))
     } else {
-      ainput = input
-      cinput = neurons map ((neuron) => (input, neuron).zipped.map(_*_).sum)
+      previousInput = input
+      calculatedInput = neurons map ((neuron) => (input, neuron).zipped.map(_*_).sum)
       neurons map ((neuron) => activation((input, neuron).zipped.map(_*_).sum))
     }
   }
