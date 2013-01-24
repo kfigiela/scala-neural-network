@@ -26,9 +26,10 @@ object Backpropagation {
             })
 
             network.layers.foreach((l) => {
-              l.update = (l.update, l.delta, l.calculatedInput).zipped.map((neuron, d, cinput) => {
-                (neuron, l.previousInput).zipped.map((weight, input) => momentum*weight + alpha * d * l.activationD(cinput) * input).toList
+              l.update = (l.update, l.delta, l.calculatedInput).zipped.map((neuron, d, calculatedInput) => {
+                (neuron, l.previousInput).zipped.map((weight, input) => momentum*weight + alpha * d * l.activationD(calculatedInput) * input).toList
               }).toList
+
               l.neurons = (l.neurons, l.update).zipped.map((neuron, update) => {
                 (neuron, update).zipped.map((weight, update) => weight + update).toList
               }).toList
